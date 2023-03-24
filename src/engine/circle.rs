@@ -1,5 +1,4 @@
 use crate::engine::engine_object::EngineObject;
-use crate::engine::world::World;
 use crate::utils::Vec2;
 
 pub struct Circle {
@@ -14,21 +13,21 @@ impl Circle {
 }
 
 impl EngineObject for Circle {
-    fn draw(&self, world: &mut World) {
+    fn draw(&self, fb: &mut Vec<u32>, width: u32, height: u32) {
         // Iterate over bounding-box area, fill in when needed
         let i_rad = self.radius.ceil() as i64;
-        let mut distance: Vec2<u32> = Vec2::new(0, 0);
         for dx in -i_rad..i_rad {
             for dy in -i_rad..i_rad {
                 let x = self.pos.x as i64 + dx;
+                if x < 0 || x >= height as i64 { continue; }
                 let y = self.pos.y as i64 + dy;
-                distance.x = x as u32;
-                distance.y = y as u32;
+                if y < 0 || y >= height as i64 { continue; }
 
-                if distance.get_magnitude() <= self.radius {
-                    world.draw_pixel(distance.x, distance.y, 0xFFFFFF);
+                let dist = ((dx * dx + dy * dy) as f64).sqrt();
+                if dist <= self.radius {
+                    let idx = y as u32 * width + x as u32;
+                    fb[idx as usize] = 0xFFFFFF;
                 }
-
             }
         }
     }

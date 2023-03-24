@@ -20,7 +20,13 @@ impl<'a> World<'a> {
     }
 
     pub fn add_object(&mut self, object: Box<dyn EngineObject>) {
-        // self.objects.push(Box::new(object.clone()));
         self.objects.push(object);
     }
+
+    pub fn draw(&mut self) {
+        for i in 0..self.objects.len() {
+            self.objects[i].draw(&mut self.fb, self.width, self.height);
+        }
+    }
+
 }
