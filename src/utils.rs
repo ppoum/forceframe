@@ -1,23 +1,39 @@
-use std::ops::{Add, Mul};
-
 #[derive(Copy, Clone)]
-pub struct Vec2<T> {
-    pub x: T,
-    pub y: T,
+pub struct Vec2f {
+    pub x: f64,
+    pub y: f64,
 }
 
-impl<T: Copy + Mul + Into<f64>> Vec2<T>
-    where <T as Mul>::Output: Add<Output=T> {  // T*T=T (same type)
-
-    pub fn new(x: T, y: T) -> Self {
-        Vec2 { x, y }
+impl Vec2f {
+    pub fn new(x: f64, y: f64) -> Self {
+        Vec2f { x, y }
     }
 
-    pub fn get_magnitude_square(&self) -> T {
-        self.x * self.x + self.y * self.y
+    pub fn get_magnitude_squared(&self) -> f64 {
+        self.x * self.x + self.y + self.y
     }
 
     pub fn get_magnitude(&self) -> f64 {
-        self.get_magnitude_square().into().sqrt()
+        self.get_magnitude_squared().sqrt()
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct Vec2i {
+    pub x: i64,
+    pub y: i64
+}
+
+impl Vec2i {
+    pub fn new(x: i64, y: i64) -> Self {
+        Vec2i { x, y }
+    }
+
+    pub fn get_magnitude_squared(&self) -> i64 {
+        self.x * self.x + self.y + self.y
+    }
+
+    pub fn get_magnitude(&self) -> f64 {
+        (self.get_magnitude_squared() as f64).sqrt()
     }
 }

@@ -9,7 +9,7 @@ pub struct World<'a> {
 
 impl<'a> World<'a> {
     pub fn new(width: u32, height: u32, fb: &'a mut Vec<u32>) -> Self {
-        World { width, height, fb: fb.as_mut(), objects: Vec::new() }
+        World { width, height, fb, objects: Vec::new() }
     }
 
     pub fn draw_pixel(&mut self, x: u32, y: u32, color: u32) {
@@ -25,7 +25,7 @@ impl<'a> World<'a> {
 
     pub fn draw(&mut self) {
         for i in 0..self.objects.len() {
-            self.objects[i].draw(&mut self.fb, self.width, self.height);
+            self.objects[i].draw(self.fb, self.width, self.height);
         }
     }
 

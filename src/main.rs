@@ -1,7 +1,7 @@
 use minifb::{Key, Window, WindowOptions};
 use crate::engine::circle::Circle;
 use crate::engine::world::World;
-use crate::utils::Vec2;
+use crate::utils::Vec2i;
 
 
 const WIDTH: usize = 640;
@@ -39,7 +39,7 @@ fn main() {
     // Limit to 500 FPS
     window.limit_update_rate(Some(std::time::Duration::from_millis(2)));
 
-    let circle = Circle::new(Vec2::new(100, 100), 50.0);
+    let circle = Circle::new(Vec2i::new(100, 100), 50.0);
     let mut w = World::new(WIDTH as u32, HEIGHT as u32, &mut buffer);
     w.add_object(Box::new(circle));
 

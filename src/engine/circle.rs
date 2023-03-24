@@ -1,13 +1,13 @@
 use crate::engine::engine_object::EngineObject;
-use crate::utils::Vec2;
+use crate::utils::Vec2i;
 
 pub struct Circle {
-    pos: Vec2<u32>,
+    pos: Vec2i,
     radius: f64,
 }
 
 impl Circle {
-    pub fn new(pos: Vec2<u32>, radius: f64) -> Self {
+    pub fn new(pos: Vec2i, radius: f64) -> Self {
         Circle { pos, radius }
     }
 }
@@ -18,9 +18,9 @@ impl EngineObject for Circle {
         let i_rad = self.radius.ceil() as i64;
         for dx in -i_rad..i_rad {
             for dy in -i_rad..i_rad {
-                let x = self.pos.x as i64 + dx;
+                let x = self.pos.x + dx;
                 if x < 0 || x >= height as i64 { continue; }
-                let y = self.pos.y as i64 + dy;
+                let y = self.pos.y + dy;
                 if y < 0 || y >= height as i64 { continue; }
 
                 let dist = ((dx * dx + dy * dy) as f64).sqrt();
@@ -32,7 +32,7 @@ impl EngineObject for Circle {
         }
     }
 
-    fn get_pos(&self) -> Vec2<u32> {
+    fn get_pos(&self) -> Vec2i {
         self.pos
     }
 }
