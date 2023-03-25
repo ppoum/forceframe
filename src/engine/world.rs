@@ -1,32 +1,108 @@
+use std::ops::Deref;
+use sfml::graphics::{CircleShape, Color, RenderTarget, RenderWindow, Shape, Transformable};
+use crate::engine::circle::Circle;
 use crate::engine::engine_object::EngineObject;
+use crate::utils::Vec2f;
 
-pub struct World<'a> {
-    width: u32,
-    height: u32,
-    fb: &'a mut Vec<u32>,
+const GRAVITY: Vec2f = Vec2f { x: 0.0, y: 1000.0 };
+
+pub struct World {
+    world_center: Vec2f,
+    world_radius: f64,
     objects: Vec<Box<dyn EngineObject>>,
+    sub_step_cnt: u32,
 }
 
-impl<'a> World<'a> {
-    pub fn new(width: u32, height: u32, fb: &'a mut Vec<u32>) -> Self {
-        World { width, height, fb, objects: Vec::new() }
+impl World {
+    pub fn new(center: Vec2f, radius: f64) -> Self {
+        World {
+            world_center: center,
+            world_radius: radius,
+            objects: Vec::new(),
+            sub_step_cnt: 1,
+        }
     }
 
-    pub fn draw_pixel(&mut self, x: u32, y: u32, color: u32) {
-        assert!(x < self.width);
-        assert!(y < self.height);
-        let idx = y * self.width + x;
-        self.fb[idx as usize] = color;
+    pub fn sfml_render(&mut self, window: &mut RenderWindow) {
+        // Clear window
+        window.clear(Color::BLACK);
+
+        for obj in &self.objects {
+            if let Some(circle) = obj.as_any().downcast_ref::<Circle>() {
+                let mut shape = CircleShape::new(circle.get_radius() as f32, 32);
+                shape.set_position(sfml::system::Vector2f {
+                    x: circle.get_pos().x as f32,
+                    y: circle.get_pos().y as f32,
+                });
+                shape.set_fill_color(Color {
+                    r: 255,
+                    g: 255,
+                    b: 255,
+                    a: 255,
+                });
+                window.draw(&shape);
+            }
+        }
     }
 
     pub fn add_object(&mut self, object: Box<dyn EngineObject>) {
         self.objects.push(object);
     }
 
-    pub fn draw(&mut self) {
-        for i in 0..self.objects.len() {
-            self.objects[i].draw(self.fb, self.width, self.height);
+    pub fn set_sub_step_cnt(&mut self, cnt: u32) {
+        self.sub_step_cnt = cnt;
+    }
+
+    pub fn tick(&mut self, dt: f64) {
+        let step_dt = dt / self.sub_step_cnt as f64;
+
+        for _ in 0..self.sub_step_cnt {
+            self.apply_gravity();
+            self.check_collisions(step_dt);
+            self.apply_constraints();
+            for i in 0..self.objects.len() {
+                self.objects[i].tick(step_dt);
+            }
         }
     }
 
+    fn apply_gravity(&mut self) {
+        for obj in self.objects.iter_mut() {
+            obj.accelerate(&GRAVITY);
+        }
+    }
+
+    fn check_collisions(&mut self, _dt: f64) {
+        for i in 0..self.objects.len() {
+            for j in i + 1..self.objects.len() {
+                let a = self.objects[i].deref();
+                let b = self.objects[j].deref();
+                let vec = a.get_pos() - b.get_pos();
+                let dist_sq = vec.get_magnitude_squared();
+                let min_dist = a.min_dist(b) + b.min_dist(a);
+                // Check if distance is larger than some number to avoid moving cells with very
+                // slight overlap
+                if dist_sq > 0.0001 && dist_sq < min_dist * min_dist {
+                    // Collision, move objects
+                    let dist = dist_sq.sqrt();
+                    // Get unit vector to use for direction
+                    let unit_vec = vec / dist;
+                    // Get ratio of masses to calculate movement
+                    let r1 = a.get_mass() / (a.get_mass() + b.get_mass());
+                    let r2 = b.get_mass() / (a.get_mass() + b.get_mass());
+                    // Get half the movement needed, if both objects move by half, full movement done
+                    let half_delta = 0.5 * 0.75 * (dist - min_dist);
+
+                    self.objects[i].sub_pos(&(unit_vec * half_delta * r1));
+                    self.objects[j].add_pos(&(unit_vec * half_delta * r2));
+                }
+            }
+        }
+    }
+
+    fn apply_constraints(&mut self) {
+        for obj in self.objects.iter_mut() {
+            obj.constraint(&self.world_center, self.world_radius);
+        }
+    }
 }
