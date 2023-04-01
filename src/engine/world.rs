@@ -1,5 +1,6 @@
 use std::ops::Deref;
 use sfml::graphics::{CircleShape, Color, RenderTarget, RenderWindow, Shape, Transformable};
+use sfml::system::Vector2f;
 use crate::engine::circle::Circle;
 use crate::engine::engine_object::EngineObject;
 use crate::utils::Vec2f;
@@ -25,15 +26,54 @@ impl World {
 
     pub fn sfml_render(&mut self, window: &mut RenderWindow) {
         // Clear window
-        window.clear(Color::BLACK);
+        window.clear(Color {
+            r: 32,
+            g: 32,
+            b: 32,
+            a: 255,
+        });
+
+        // Draw world boundary
+        let mut world_boundary = CircleShape::new(1.0, 64);
+        // Set origin to middle of 2x2 circle (r=1), then scale to proper size
+        world_boundary.set_origin(Vector2f {
+            x: 1.0,
+            y: 1.0,
+        });
+        world_boundary.set_position(Vector2f {
+            x: self.world_center.x as f32,
+            y: self.world_center.y as f32,
+        });
+        world_boundary.set_scale(Vector2f {
+            x: self.world_radius as f32,
+            y: self.world_radius as f32,
+        });
+        world_boundary.set_fill_color(Color {
+            r: 0,
+            g: 0,
+            b: 0,
+            a: 255,
+        });
+        window.draw(&world_boundary);
 
         for obj in &self.objects {
             if let Some(circle) = obj.as_any().downcast_ref::<Circle>() {
-                let mut shape = CircleShape::new(circle.get_radius() as f32, 32);
-                shape.set_position(sfml::system::Vector2f {
+                let mut shape = CircleShape::new(1.0, 32);
+
+                shape.set_origin(Vector2f {
+                    x: 1.0,
+                    y: 1.0,
+                });
+                // let mut shape = CircleShape::new(1.0, 32);
+                shape.set_position(Vector2f {
                     x: circle.get_pos().x as f32,
                     y: circle.get_pos().y as f32,
                 });
+                shape.set_scale(Vector2f {
+                    x: circle.get_radius() as f32,
+                    y: circle.get_radius() as f32,
+                });
+
                 shape.set_fill_color(Color {
                     r: 255,
                     g: 255,
@@ -63,6 +103,7 @@ impl World {
             for i in 0..self.objects.len() {
                 self.objects[i].tick(step_dt);
             }
+            self.apply_constraints();
         }
     }
 

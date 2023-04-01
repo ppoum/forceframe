@@ -9,6 +9,7 @@ use crate::utils::Vec2f;
 
 const WIDTH: usize = 1024;
 const HEIGHT: usize = 1024;
+const RADIUS: f64 = 400.0;
 const TIME_STEP: f64 = 1.0 / 60.0;
 const SUB_STEP_CNT: u32 = 64;
 const RND_SEED: u64 = 141414;
@@ -30,15 +31,15 @@ fn main() {
     window.set_framerate_limit(60);
     window.set_vertical_sync_enabled(false);
 
-    let c1 = Circle::new(Vec2f::new(100.0, 100.0), 10.0);
-    let mut c2 = Circle::new(Vec2f::new(105.0, 200.0), 10.0);
+    let c1 = Circle::new(Vec2f::new(512.0, 512.0), 10.0);
+    let mut c2 = Circle::new(Vec2f::new(400.0, 612.0), 10.0);
     c2.add_vel(&Vec2f::new(2.0, 0.0), 0.0068);
     let world_center = Vec2f {
         x: WIDTH as f64 / 2.0,
         y: HEIGHT as f64 / 2.0,
     };
 
-    let mut w = World::new(world_center, 400.0);
+    let mut w = World::new(world_center, RADIUS);
     w.set_sub_step_cnt(SUB_STEP_CNT);
     w.add_object(Box::new(c1));
     w.add_object(Box::new(c2));
