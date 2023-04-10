@@ -6,7 +6,34 @@ use crate::engine::engine_object::EngineObject;
 use crate::engine::world::World;
 use crate::utils::Vec2f;
 
+macro_rules! dbg2 {
+    ($expr:expr) => (dbg!("{:#?}", $expr));
+    ($fmt:expr, $expr:expr$(, $opt:expr)*) => {
+        match $expr {
+            expr => {
+                eprintln!(concat!("[{}:{}] {} = ", $fmt), file!(), line!(), stringify!($expr), &expr$(, $opt)*);
+                expr
+            }
+        }
+    }
+}
 
+macro_rules! debug {
+    ($($e:expr),+) => {
+        #[cfg(debug_assertions)]
+        {
+            // dbg2!($($e),+)
+            ($($e),+)
+        }
+        #[cfg(not(debug_assertions))]
+        {
+            ($($e),+)
+        }
+    }
+}
+
+
+// Assumes that WIDTH & HEIGHT are multiples of 32
 const WIDTH: usize = 1024;
 const HEIGHT: usize = 1024;
 const RADIUS: f64 = 400.0;
@@ -16,6 +43,7 @@ const RND_SEED: u64 = 141414;
 
 // Defining src modules
 pub mod engine {
+    pub mod cell_matrix;
     pub mod circle;
     pub mod engine_object;
     pub mod world;
@@ -23,12 +51,17 @@ pub mod engine {
 
 pub mod utils;
 
-fn main() {
+// fn main() {
+//     if firestorm::enabled() {
+//         firestorm::bench("./flames/", main2).unwrap()
+//     }
+// }
 
+fn main() {
     let mut window = sfml::graphics::RenderWindow::new(
         (WIDTH as u32, HEIGHT as u32), "forceframe",
         Style::CLOSE, &Default::default());
-    window.set_framerate_limit(60);
+    window.set_framerate_limit(120);
     window.set_vertical_sync_enabled(false);
 
     let c1 = Circle::new(Vec2f::new(512.0, 512.0), 10.0);
@@ -47,7 +80,7 @@ fn main() {
     let mut last = Instant::now();
 
     let mut last_spawn = Instant::now();
-    let max_spawn_cnt = 1000;
+    let max_spawn_cnt = 500;
     let mut spawn_cnt = 0;
     let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(RND_SEED);
 
@@ -73,7 +106,7 @@ fn main() {
             w.add_object(Box::new(new_circle));
         }
 
-        println!("FPS: {}", 1000000 / (delta.as_micros() + 1));  // +1 to avoid div by zero
+        println!("FPS: {} - {}", 1000000 / (delta.as_micros() + 1), spawn_cnt);  // +1 to avoid div by zero
         w.tick(TIME_STEP);
         w.sfml_render(&mut window);
 

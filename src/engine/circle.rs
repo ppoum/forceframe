@@ -49,6 +49,8 @@ impl EngineObject for Circle {
         self.pos
     }
 
+    fn get_last_pos(&self) -> Vec2f { self.last_pos }
+
     fn get_mass(&self) -> f64 {
         std::f64::consts::TAU * self.radius
     }

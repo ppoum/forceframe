@@ -4,6 +4,7 @@ use crate::utils::{Vec2f, Vec2i};
 pub trait EngineObject {
     fn draw(&self, fb: &mut Vec<u32>, dimensions: &Vec2i);
     fn get_pos(&self) -> Vec2f;
+    fn get_last_pos(&self) -> Vec2f;
     fn get_mass(&self) -> f64;
     fn min_dist(&self, b: &dyn EngineObject) -> f64;
     fn add_pos(&mut self, pos: &Vec2f);
@@ -13,4 +14,14 @@ pub trait EngineObject {
     fn constraint(&mut self, center: &Vec2f, radius: f64);
     fn tick(&mut self, dt: f64);
     fn as_any(&self) -> &dyn Any;
+
+    fn get_cell_pos(&self, cell_size: u32) -> (usize, usize) {
+        let pos = self.get_pos();
+        (pos.y as usize / cell_size as usize, pos.x as usize / cell_size as usize)
+    }
+
+    fn get_last_cell_pos(&self, cell_size: u32) -> (usize, usize) {
+        let pos = self.get_last_pos();
+        (pos.y as usize / cell_size as usize, pos.x as usize / cell_size as usize)
+    }
 }
